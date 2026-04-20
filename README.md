@@ -1,16 +1,69 @@
-# React + Vite
+# Gépelés.Teszt
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Magyar nyelvű gépelési sebesség mérő alkalmazás, React + Vite alapokon.
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Képernyőkép
 
-## React Compiler
+> _ide beszúrhatunk egy screenshotot később_
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Funkciók
 
-## Expanding the ESLint configuration
+- Magyar gyakorló szövegek három nehézségi szinten
+- Választható időkorlát: 30 / 60 / 120 másodperc
+- Valós idejű statisztikák: SZP (szó/perc), pontosság, idő, karakterszám
+- Egyéni szöveg beillesztése
+- Sötét, minimalista dizájn
+- Reszponzív – mobilon is működik
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Technológiák
+
+- [React 18](https://react.dev/)
+- [Vite](https://vitejs.dev/)
+- CSS Modules
+
+## Telepítés és futtatás
+
+### Előfeltételek
+- Node.js 18+
+- npm
+
+### Lépések
+
+# Repository klónozása
+git clone https://github.com/bcbeco/gepeles-teszt.git
+
+# Mappába lépés
+cd gepeles-teszt
+
+# Függőségek telepítése
+npm install
+
+# Fejlesztői szerver indítása
+npm run dev
+
+Az alkalmazás elérhető lesz a `http://localhost:5173` címen.
+
+## Projekt struktúra
+src/
+├── components/
+│   └── TypingSpeedTest/
+│       ├── index.jsx                  # Fő komponens
+│       ├── TypingSpeedTest.module.css # Stílusok
+│       ├── constants.js               # Szövegek és beállítások
+│       └── utils.js                   # Segédfüggvények
+├── App.jsx
+└── main.jsx
+
+## Használat
+
+1. Válassz nehézségi szintet: **könnyű / közepes / nehéz**
+2. Válassz időkorlátot: **30s / 60s / 120s**
+3. Kattints a szövegterületre és kezdj el gépelni
+4. Az első leütés után 3 másodperces visszaszámlálás indul
+5. Gépeld le a szöveget a lehető leggyorsabban és pontosabban
+6. Az idő lejártával látod az eredményedet
+
+## Licenc
+
+MIT License – szabadon felhasználható és módosítható.
