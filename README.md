@@ -45,6 +45,7 @@ npm run dev
 Az alkalmazás elérhető lesz a `http://localhost:5173` címen.
 
 ## Projekt struktúra
+```plaintext
 src/
 ├── components/
 │   └── TypingSpeedTest/
@@ -54,6 +55,7 @@ src/
 │       └── utils.js                   # Segédfüggvények
 ├── App.jsx
 └── main.jsx
+```
 
 ## Használat
 
