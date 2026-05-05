@@ -37,6 +37,7 @@ export default function TypingSpeedTest() {
   const inputRef       = useRef(null);
   const timerRef       = useRef(null);
   const countdownRef   = useRef(null);
+  const sessionRef     = useRef(0);
   const timeLimitRef   = useRef(timeLimit);
   const startedRef     = useRef(false);
   const doneRef        = useRef(false);
@@ -52,10 +53,30 @@ export default function TypingSpeedTest() {
     setAccuracy(calcAccuracy(typedArr, passage));
   }, [passage]);
 
+  const clearTimers = useCallback(() => {
+    sessionRef.current += 1;
+    if (timerRef.current !== null) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (countdownRef.current !== null) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+  }, []);
+
+  // ── Ha a szöveg vége, állítsuk le a timert és fejezzük be ──
+  useEffect(() => {
+    if (typed.length >= passage.length && started && !done) {
+      clearTimers();
+      setDone(true);
+      doneRef.current = true;
+    }
+  }, [typed.length, passage.length, started, done, clearTimers]);
+
   // ── Reset: mindent visszaállít alapállapotba ──
   const reset = useCallback((diff, tl, custom) => {
-    clearInterval(timerRef.current);
-    clearInterval(countdownRef.current);
+    clearTimers();
     setPassage(pickText(diff, custom));
     setTyped([]);
     setStarted(false);
@@ -68,17 +89,35 @@ export default function TypingSpeedTest() {
     doneRef.current    = false;
     // Kis késleltetés után fókuszáljuk az inputot
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, []);
+  }, [clearTimers]);
 
   // Kezdeti betöltéskor egyszer resetelünk
   useEffect(() => { reset(difficulty, timeLimit, customText); }, []);
 
+  useEffect(() => {
+    return () => {
+      clearTimers();
+    };
+  }, [clearTimers]);
+
   // ── Visszaszámlálás utáni gépelési timer indítása ──
   const startTypingTimer = useCallback((tl) => {
+    const sessionId = sessionRef.current;
     setStarted(true);
     startedRef.current = true;
+    setTimeLeft(tl);
     let left = tl;
     timerRef.current = setInterval(() => {
+      if (sessionRef.current !== sessionId) {
+        clearInterval(timerRef.current);
+        return;
+      }
+      if (left <= 0) {
+        clearInterval(timerRef.current);
+        setDone(true);
+        doneRef.current = true;
+        return;
+      }
       left--;
       setTimeLeft(left);
       // Az aktuális typed tömb alapján frissítjük a statisztikát
@@ -86,20 +125,21 @@ export default function TypingSpeedTest() {
         recalcStats(prev, left, tl);
         return prev;
       });
-      if (left <= 0) {
-        clearInterval(timerRef.current);
-        setDone(true);
-        doneRef.current = true;
-      }
     }, 1000);
   }, [recalcStats]);
 
   // ── Visszaszámlálás (3-2-1) az első leütés után ──
   const beginCountdown = useCallback((tl) => {
+    clearTimers();
+    const sessionId = sessionRef.current;
     let c = 3;
     setCountdown(c);
     setCountdownKey(k => k + 1);
     countdownRef.current = setInterval(() => {
+      if (sessionRef.current !== sessionId) {
+        clearInterval(countdownRef.current);
+        return;
+      }
       c--;
       if (c <= 0) {
         clearInterval(countdownRef.current);
@@ -110,7 +150,7 @@ export default function TypingSpeedTest() {
         setCountdownKey(k => k + 1);
       }
     }, 1000);
-  }, [startTypingTimer]);
+  }, [clearTimers, startTypingTimer]);
 
   // ── Billentyűleütés kezelése ──
   const handleKeyDown = useCallback((e) => {
@@ -118,25 +158,26 @@ export default function TypingSpeedTest() {
     if (doneRef.current || countdown > 0) return;
 
     const key = e.key;
+    const currentLimit = timeLimitRef.current;
 
     if (key === "Backspace") {
       // Törlés: az utolsó karakter eltávolítása
       setTyped(prev => {
         const next = prev.slice(0, -1);
-        if (startedRef.current) recalcStats(next, timeLimitRef.current, timeLimitRef.current);
+        if (startedRef.current) recalcStats(next, currentLimit, currentLimit);
         return next;
       });
     } else if (key.length === 1) {
+      if (!startedRef.current) {
+        beginCountdown(currentLimit);
+        e.preventDefault();
+        return;
+      }
       setTyped(prev => {
         // Ha már elértük a szöveg végét, nem fogadunk több karaktert
         if (prev.length >= passage.length) return prev;
-        // Az első leütés elindítja a visszaszámlálást
-        if (!startedRef.current) {
-          beginCountdown(timeLimitRef.current);
-          return prev;
-        }
         const next = [...prev, key];
-        recalcStats(next, timeLimitRef.current - 1, timeLimitRef.current);
+        recalcStats(next, currentLimit - 1, currentLimit);
         return next;
       });
     }
